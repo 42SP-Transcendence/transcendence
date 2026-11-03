@@ -1,0 +1,28 @@
+{
+  "name": "@transcendence/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev --port 3000",
+    "start": "next start --port 3000",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "next": "16.4.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.4",
+    "@transcendence/config": "workspace:*",
+    "@types/node": "^22.19.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "tailwindcss": "^4.3.4",
+    "typescript": "~6.0.3"
+  }
+}
