@@ -1,4 +1,4 @@
-_This project has been created as part of the 42 curriculum by <login1>, <login2>, <login3>, <login4>, <login5>._
+_This project has been created as part of the 42 curriculum by jucoelho, galves-a, eduribei, vinda-si, dajesus._
 
 # Observatório
 
@@ -55,13 +55,13 @@ pnpm dev
 
 ## Team Information
 
-| Member   | Login     | Roles                                   |
-| -------- | --------- | --------------------------------------- |
-| Eduardo  | `<login>` | Product Owner, Developer                |
-| Júlia    | `<login>` | Project Manager, Developer              |
-| Daniel   | `<login>` | Project Manager (to confirm), Developer |
-| Gyasmin  | `<login>` | Technical Lead / Architect, Developer   |
-| Vinícius | `<login>` | Developer                               |
+| Member   | Login      | Roles                                   |
+| -------- | ---------- | --------------------------------------- |
+| Eduardo  | `eduribei` | Product Owner, Developer                |
+| Júlia    | `jucoelho` | Project Manager, Developer              |
+| Daniel   | `dajesus`  | Project Manager (to confirm), Developer |
+| Gyasmin  | `galves-a` | Technical Lead / Architect, Developer   |
+| Vinícius | `vinda-si` | Developer                               |
 
 ## Project Management
 
