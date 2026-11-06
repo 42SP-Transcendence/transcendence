@@ -1,0 +1,371 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  runtime                = "nodejs"
+  moduleFormat           = "esm"
+  importFileExtension    = "js"
+  generatedFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  admin
+  moderator
+  user
+
+  @@map("role")
+}
+
+enum Locale {
+  pt_BR @map("pt-BR")
+  en
+  es
+
+  @@map("locale")
+}
+
+enum JobStatus {
+  pending
+  running
+  done
+  failed
+
+  @@map("job_status")
+}
+
+enum CollectionOutcome {
+  ok
+  stale
+  empty
+  auth_failed
+  collector_failed
+
+  @@map("collection_outcome")
+}
+
+enum Verdict {
+  compatible
+  attention
+  below
+  not_estimable
+
+  @@map("verdict")
+}
+
+enum WaitOutcome {
+  boarded
+  gave_up
+
+  @@map("wait_outcome")
+}
+
+enum ProtocolChannel {
+  sp156
+  lai
+
+  @@map("protocol_channel")
+}
+
+enum ComplaintKind {
+  excessive_interval
+  missed_departure
+
+  @@map("complaint_kind")
+}
+
+model User {
+  id                 String              @id @default(uuid(7)) @db.Uuid
+  email              String              @unique
+  passwordHash       String?             @map("password_hash")
+  fortytwoId         String?             @unique @map("fortytwo_id")
+  displayName        String              @map("display_name")
+  role               Role                @default(user)
+  locale             Locale              @default(pt_BR)
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  deletedAt          DateTime?           @map("deleted_at") @db.Timestamptz
+  lineFollows        LineFollow[]
+  monitoringRequests MonitoringRequest[]
+  waitReports        WaitReport[]
+
+  @@map("users")
+}
+
+model LineFollow {
+  userId    String   @map("user_id") @db.Uuid
+  routeId   String   @map("route_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, routeId])
+  @@map("line_follows")
+}
+
+model Route {
+  routeId   String          @id @map("route_id")
+  shortName String          @map("short_name")
+  longName  String          @map("long_name")
+  routeType Int             @map("route_type") @db.SmallInt
+  trips     Trip[]
+  districts RouteDistrict[]
+
+  @@map("routes")
+}
+
+model Calendar {
+  serviceId String   @id @map("service_id")
+  monday    Boolean
+  tuesday   Boolean
+  wednesday Boolean
+  thursday  Boolean
+  friday    Boolean
+  saturday  Boolean
+  sunday    Boolean
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  trips     Trip[]
+
+  @@map("calendars")
+}
+
+model Trip {
+  tripId      String      @id @map("trip_id")
+  routeId     String      @map("route_id")
+  serviceId   String      @map("service_id")
+  directionId Int         @map("direction_id") @db.SmallInt
+  headsign    String?
+  route       Route       @relation(fields: [routeId], references: [routeId], onDelete: Cascade)
+  calendar    Calendar    @relation(fields: [serviceId], references: [serviceId], onDelete: Cascade)
+  stopTimes   StopTime[]
+  frequencies Frequency[]
+
+  @@index([routeId, directionId])
+  @@map("trips")
+}
+
+model Stop {
+  stopId    BigInt     @id @map("stop_id")
+  name      String
+  lat       Float
+  lon       Float
+  stopTimes StopTime[]
+
+  @@map("stops")
+}
+
+model StopTime {
+  tripId            String @map("trip_id")
+  stopSequence      Int    @map("stop_sequence")
+  stopId            BigInt @map("stop_id")
+  arrivalOffsetSecs Int    @map("arrival_offset_secs")
+  trip              Trip   @relation(fields: [tripId], references: [tripId], onDelete: Cascade)
+  stop              Stop   @relation(fields: [stopId], references: [stopId], onDelete: Cascade)
+
+  @@id([tripId, stopSequence])
+  @@index([stopId])
+  @@map("stop_times")
+}
+
+model Frequency {
+  tripId      String @map("trip_id")
+  startSecs   Int    @map("start_secs")
+  endSecs     Int    @map("end_secs")
+  headwaySecs Int    @map("headway_secs")
+  trip        Trip   @relation(fields: [tripId], references: [tripId], onDelete: Cascade)
+
+  @@id([tripId, startSecs])
+  @@map("frequencies")
+}
+
+model LineVariant {
+  id                 String              @id @default(uuid(7)) @db.Uuid
+  routeId            String              @map("route_id")
+  directionId        Int                 @map("direction_id") @db.SmallInt
+  olhoVivoCl         Int                 @unique @map("olho_vivo_cl")
+  lt                 String
+  tl                 Int                 @db.SmallInt
+  terminalMain       String              @map("terminal_main")
+  terminalSecondary  String              @map("terminal_secondary")
+  lastSeenAt         DateTime?           @map("last_seen_at") @db.Timestamptz
+  monitoringRequests MonitoringRequest[]
+  collectionJobs     CollectionJob[]
+  waitReports        WaitReport[]
+
+  @@unique([routeId, directionId])
+  @@map("line_variants")
+}
+
+model MonitoringRequest {
+  id              String        @id @default(uuid(7)) @db.Uuid
+  userId          String        @map("user_id") @db.Uuid
+  lineVariantId   String        @map("line_variant_id") @db.Uuid
+  operatingDay    DateTime      @map("operating_day") @db.Date
+  collectionJobId String        @map("collection_job_id") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lineVariant     LineVariant   @relation(fields: [lineVariantId], references: [id])
+  collectionJob   CollectionJob @relation(fields: [collectionJobId], references: [id])
+
+  @@unique([userId, lineVariantId, operatingDay])
+  @@index([collectionJobId])
+  @@map("monitoring_requests")
+}
+
+model CollectionJob {
+  id                 String              @id @default(uuid(7)) @db.Uuid
+  lineVariantId      String              @map("line_variant_id") @db.Uuid
+  operatingDay       DateTime            @map("operating_day") @db.Date
+  status             JobStatus           @default(pending)
+  intervalSecs       Int                 @map("interval_secs")
+  startedAt          DateTime?           @map("started_at") @db.Timestamptz
+  finishedAt         DateTime?           @map("finished_at") @db.Timestamptz
+  lineVariant        LineVariant         @relation(fields: [lineVariantId], references: [id])
+  monitoringRequests MonitoringRequest[]
+  attempts           CollectionAttempt[]
+  positions          VehiclePosition[]
+  bandAssessments    BandAssessment[]
+  dossiers           Dossier[]
+
+  @@unique([lineVariantId, operatingDay])
+  @@index([status])
+  @@map("collection_jobs")
+}
+
+model CollectionAttempt {
+  id           BigInt            @id @default(autoincrement())
+  jobId        String            @map("job_id") @db.Uuid
+  requestedAt  DateTime          @map("requested_at") @db.Timestamptz
+  referenceHr  String?           @map("reference_hr")
+  outcome      CollectionOutcome
+  httpStatus   Int?              @map("http_status") @db.SmallInt
+  latencyMs    Int?              @map("latency_ms")
+  vehicleCount Int               @default(0) @map("vehicle_count")
+  job          CollectionJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  positions    VehiclePosition[]
+
+  @@index([jobId, requestedAt])
+  @@map("collection_attempts")
+}
+
+model VehiclePosition {
+  id            BigInt            @id @default(autoincrement())
+  jobId         String            @map("job_id") @db.Uuid
+  attemptId     BigInt            @map("attempt_id")
+  vehiclePrefix String            @map("vehicle_prefix")
+  observedAt    DateTime          @map("observed_at") @db.Timestamptz
+  lat           Float
+  lon           Float
+  accessible    Boolean
+  job           CollectionJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  attempt       CollectionAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, vehiclePrefix, observedAt])
+  @@index([attemptId])
+  @@map("vehicle_positions")
+}
+
+model BandAssessment {
+  id                   BigInt        @id @default(autoincrement())
+  jobId                String        @map("job_id") @db.Uuid
+  bandStartSecs        Int           @map("band_start_secs")
+  bandEndSecs          Int           @map("band_end_secs")
+  scheduledHeadwaySecs Int?          @map("scheduled_headway_secs")
+  maxObservedGapSecs   Int?          @map("max_observed_gap_secs")
+  coverageRatio        Decimal       @map("coverage_ratio") @db.Decimal(4, 3)
+  verdict              Verdict
+  methodVersion        String        @map("method_version")
+  job                  CollectionJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, bandStartSecs, methodVersion])
+  @@map("band_assessments")
+}
+
+model WaitReport {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  userId        String      @map("user_id") @db.Uuid
+  lineVariantId String      @map("line_variant_id") @db.Uuid
+  stopId        BigInt      @map("stop_id")
+  startedAt     DateTime    @map("started_at") @db.Timestamptz
+  endedAt       DateTime    @map("ended_at") @db.Timestamptz
+  outcome       WaitOutcome
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lineVariant   LineVariant @relation(fields: [lineVariantId], references: [id])
+  dossier       Dossier?
+
+  @@index([userId])
+  @@map("wait_reports")
+}
+
+model Dossier {
+  id               String              @id @default(uuid(7)) @db.Uuid
+  waitReportId     String              @unique @map("wait_report_id") @db.Uuid
+  collectionJobId  String              @map("collection_job_id") @db.Uuid
+  methodVersion    String              @map("method_version")
+  evidenceSnapshot Json                @map("evidence_snapshot")
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  waitReport       WaitReport          @relation(fields: [waitReportId], references: [id], onDelete: Cascade)
+  collectionJob    CollectionJob       @relation(fields: [collectionJobId], references: [id])
+  protocols        ComplaintProtocol[]
+
+  @@index([collectionJobId])
+  @@map("dossiers")
+}
+
+model ComplaintProtocol {
+  id             String          @id @default(uuid(7)) @db.Uuid
+  dossierId      String          @map("dossier_id") @db.Uuid
+  channel        ProtocolChannel
+  protocolNumber String          @map("protocol_number")
+  registeredAt   DateTime        @map("registered_at") @db.Date
+  answeredAt     DateTime?       @map("answered_at") @db.Date
+  reminderSentAt DateTime?       @map("reminder_sent_at") @db.Timestamptz
+  dossier        Dossier         @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+
+  @@unique([channel, protocolNumber])
+  @@index([dossierId])
+  @@index([registeredAt])
+  @@map("complaint_protocols")
+}
+
+model District {
+  id            Int              @id @default(autoincrement()) @db.SmallInt
+  name          String           @unique
+  subprefecture String
+  geometry      Json?
+  complaints    Sp156Complaint[]
+  routes        RouteDistrict[]
+
+  @@map("districts")
+}
+
+model Sp156Complaint {
+  id           BigInt        @id @default(autoincrement())
+  sourcePeriod String        @map("source_period")
+  districtId   Int           @map("district_id") @db.SmallInt
+  kind         ComplaintKind
+  openedAt     DateTime      @map("opened_at") @db.Date
+  closedAt     DateTime?     @map("closed_at") @db.Date
+  status       String
+  channel      String
+  lat          Float?
+  lon          Float?
+  district     District      @relation(fields: [districtId], references: [id])
+
+  @@index([sourcePeriod])
+  @@index([districtId, kind])
+  @@map("sp156_complaints")
+}
+
+model RouteDistrict {
+  routeId    String   @map("route_id")
+  districtId Int      @map("district_id") @db.SmallInt
+  route      Route    @relation(fields: [routeId], references: [routeId], onDelete: Cascade)
+  district   District @relation(fields: [districtId], references: [id], onDelete: Cascade)
+
+  @@id([routeId, districtId])
+  @@index([districtId])
+  @@map("route_districts")
+}

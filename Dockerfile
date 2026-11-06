@@ -14,6 +14,10 @@ RUN pnpm install --frozen-lockfile
 COPY --from=pruner /repo/out/full/ .
 RUN pnpm turbo run build --filter=@transcendence/${APP}
 
+FROM builder AS migrate
+WORKDIR /repo/packages/database
+CMD ["node_modules/.bin/prisma", "migrate", "deploy"]
+
 FROM node:22-alpine AS api
 ENV NODE_ENV=production
 WORKDIR /repo
