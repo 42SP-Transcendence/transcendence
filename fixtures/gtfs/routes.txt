@@ -1,0 +1,4 @@
+route_id,agency_id,route_short_name,route_long_name,route_type,route_color,route_text_color
+7545-10,1,7545-10,Jd. João Xxiii - Pça. Ramos De Azevedo,3,FF671F,000000
+8000-1,1,8000-1,Term. Lapa - Pça. Ramos De Azevedo,3,509E2F,FFFFFF
+8000-10,1,8000-10,Term. Lapa - Pça. Ramos De Azevedo,3,509E2F,FFFFFF
