@@ -124,6 +124,7 @@ erDiagram
         role role
         locale locale
         timestamptz created_at
+        timestamptz suspended_at
         timestamptz deleted_at
     }
     line_follows {
@@ -229,6 +230,8 @@ erDiagram
         int band_end_secs
         int scheduled_headway_secs
         int max_observed_gap_secs
+        int observed_count
+        int expected_count
         decimal coverage_ratio
         verdict verdict
         text method_version
