@@ -180,6 +180,18 @@ model Frequency {
   @@map("frequencies")
 }
 
+model GtfsFeed {
+  id              Int              @id @default(autoincrement()) @db.SmallInt
+  contentHash     String           @unique @map("content_hash")
+  validFrom       DateTime         @map("valid_from") @db.Date
+  validTo         DateTime         @map("valid_to") @db.Date
+  importedAt      DateTime         @default(now()) @map("imported_at") @db.Timestamptz
+  bandAssessments BandAssessment[]
+  dossiers        Dossier[]
+
+  @@map("gtfs_feeds")
+}
+
 model LineVariant {
   id                 String              @id @default(uuid(7)) @db.Uuid
   routeId            String              @map("route_id")
@@ -243,6 +255,7 @@ model CollectionAttempt {
   httpStatus   Int?              @map("http_status") @db.SmallInt
   latencyMs    Int?              @map("latency_ms")
   vehicleCount Int               @default(0) @map("vehicle_count")
+  rawResponse  Json?             @map("raw_response")
   job          CollectionJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
   positions    VehiclePosition[]
 
@@ -279,9 +292,11 @@ model BandAssessment {
   coverageRatio        Decimal       @map("coverage_ratio") @db.Decimal(4, 3)
   verdict              Verdict
   methodVersion        String        @map("method_version")
+  gtfsFeedId           Int           @map("gtfs_feed_id") @db.SmallInt
   job                  CollectionJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  gtfsFeed             GtfsFeed      @relation(fields: [gtfsFeedId], references: [id])
 
-  @@unique([jobId, bandStartSecs, methodVersion])
+  @@unique([jobId, bandStartSecs, methodVersion, gtfsFeedId])
   @@map("band_assessments")
 }
 
@@ -307,10 +322,12 @@ model Dossier {
   waitReportId     String              @unique @map("wait_report_id") @db.Uuid
   collectionJobId  String              @map("collection_job_id") @db.Uuid
   methodVersion    String              @map("method_version")
+  gtfsFeedId       Int                 @map("gtfs_feed_id") @db.SmallInt
   evidenceSnapshot Json                @map("evidence_snapshot")
   createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz
   waitReport       WaitReport          @relation(fields: [waitReportId], references: [id], onDelete: Cascade)
   collectionJob    CollectionJob       @relation(fields: [collectionJobId], references: [id])
+  gtfsFeed         GtfsFeed            @relation(fields: [gtfsFeedId], references: [id])
   protocols        ComplaintProtocol[]
 
   @@index([collectionJobId])

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -15,6 +16,8 @@ type OlhoVivoLine = {
 };
 
 const fixtures = join(import.meta.dirname, '..', '..', '..', 'fixtures');
+
+const gtfsFiles = ['calendar', 'frequencies', 'routes', 'stop_times', 'stops', 'trips'];
 
 /**
  * Splits one CSV line into fields, honouring double-quoted fields that contain commas.
@@ -82,6 +85,18 @@ function toDate(value: string): Date {
 }
 
 /**
+ * Hashes the imported GTFS files so the same content always maps to the same feed version.
+ */
+function gtfsContentHash(): string {
+  const hash = createHash('sha256');
+  for (const name of gtfsFiles) {
+    hash.update(`${name}\n`);
+    hash.update(readFileSync(join(fixtures, 'gtfs', `${name}.txt`)));
+  }
+  return hash.digest('hex');
+}
+
+/**
  * Builds stop_times rows with each arrival stored as an offset from the trip's first arrival.
  */
 function stopTimesWithOffsets(rows: Row[]) {
@@ -103,7 +118,7 @@ function stopTimesWithOffsets(rows: Row[]) {
 }
 
 /**
- * Replaces the schedule with the GTFS excerpt and upserts the matching Olho Vivo line variants.
+ * Replaces the schedule with the GTFS excerpt, records its feed version and upserts the matching Olho Vivo line variants.
  */
 async function main(): Promise<void> {
   const url = process.env.DATABASE_URL;
@@ -114,6 +129,23 @@ async function main(): Promise<void> {
   const lines = JSON.parse(
     readFileSync(join(fixtures, 'olho-vivo', 'linha-buscar-8000.json'), 'utf8'),
   ) as OlhoVivoLine[];
+  const calendars = readGtfs('calendar').map((row) => ({
+    serviceId: field(row, 'service_id'),
+    monday: field(row, 'monday') === '1',
+    tuesday: field(row, 'tuesday') === '1',
+    wednesday: field(row, 'wednesday') === '1',
+    thursday: field(row, 'thursday') === '1',
+    friday: field(row, 'friday') === '1',
+    saturday: field(row, 'saturday') === '1',
+    sunday: field(row, 'sunday') === '1',
+    startDate: toDate(field(row, 'start_date')),
+    endDate: toDate(field(row, 'end_date')),
+  }));
+  const feed = {
+    contentHash: gtfsContentHash(),
+    validFrom: new Date(Math.min(...calendars.map((calendar) => calendar.startDate.getTime()))),
+    validTo: new Date(Math.max(...calendars.map((calendar) => calendar.endDate.getTime()))),
+  };
   try {
     await prisma.$transaction(
       async (tx) => {
@@ -128,20 +160,7 @@ async function main(): Promise<void> {
             routeType: Number(field(row, 'route_type')),
           })),
         });
-        await tx.calendar.createMany({
-          data: readGtfs('calendar').map((row) => ({
-            serviceId: field(row, 'service_id'),
-            monday: field(row, 'monday') === '1',
-            tuesday: field(row, 'tuesday') === '1',
-            wednesday: field(row, 'wednesday') === '1',
-            thursday: field(row, 'thursday') === '1',
-            friday: field(row, 'friday') === '1',
-            saturday: field(row, 'saturday') === '1',
-            sunday: field(row, 'sunday') === '1',
-            startDate: toDate(field(row, 'start_date')),
-            endDate: toDate(field(row, 'end_date')),
-          })),
-        });
+        await tx.calendar.createMany({ data: calendars });
         await tx.stop.createMany({
           data: readGtfs('stops').map((row) => ({
             stopId: BigInt(field(row, 'stop_id')),
@@ -167,6 +186,11 @@ async function main(): Promise<void> {
             endSecs: toSeconds(field(row, 'end_time')),
             headwaySecs: Number(field(row, 'headway_secs')),
           })),
+        });
+        await tx.gtfsFeed.upsert({
+          where: { contentHash: feed.contentHash },
+          create: feed,
+          update: {},
         });
         for (const line of lines) {
           const variant = {
