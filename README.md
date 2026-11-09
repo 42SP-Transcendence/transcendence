@@ -31,14 +31,32 @@ pnpm install
 pnpm dev
 ```
 
-| Command          | What it does                                 |
-| ---------------- | -------------------------------------------- |
-| `pnpm build`     | Builds every app and package with Turborepo  |
-| `pnpm lint`      | Runs ESLint in every workspace               |
-| `pnpm typecheck` | Type-checks every workspace                  |
-| `pnpm test`      | Runs the test suites                         |
-| `pnpm format`    | Formats the repository with Prettier         |
-| `pnpm knip`      | Lists unused files, exports and dependencies |
+| Command                     | What it does                                 |
+| --------------------------- | -------------------------------------------- |
+| `pnpm build`                | Builds every app and package with Turborepo  |
+| `pnpm lint`                 | Runs ESLint in every workspace               |
+| `pnpm typecheck`            | Type-checks every workspace                  |
+| `pnpm test`                 | Runs the test suites                         |
+| `pnpm format`               | Formats the repository with Prettier         |
+| `pnpm knip`                 | Lists unused files, exports and dependencies |
+| `pnpm gtfs:import <folder>` | Imports an extracted GTFS feed (build first) |
+
+### Import the GTFS schedule
+
+The planned schedule comes from the SPTrans GTFS feed, published in the SPTrans developer area and mirrored by the [Mobility Database](https://mobilitydatabase.org) as `mdb-8`. Extract the ZIP into a folder and import it into the Docker database:
+
+```bash
+docker compose up -d migrate
+docker build --target builder --build-arg APP=collector -t transcendence-collector .
+docker run --rm --network transcendence_default --env-file .env -v /path/to/gtfs:/gtfs:ro -w /repo/apps/collector transcendence-collector node dist/modules/gtfs/presentation/import-gtfs.command.js /gtfs
+```
+
+The import reads `routes`, `calendar`, `stops`, `trips`, `stop_times` and `frequencies`, and prints the rows read and imported per file:
+
+- Rows with an invalid or unknown value are skipped and listed with their line number.
+- A missing file or required column rejects the whole feed: the command exits with code 1 and the current schedule stays as it was.
+- An accepted feed replaces the schedule in one transaction and is recorded in `gtfs_feeds` by the SHA-256 of its files. Importing the same files again reuses that version.
+- `shapes.txt` is not imported.
 
 ### Repository layout
 

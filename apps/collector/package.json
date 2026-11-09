@@ -6,6 +6,7 @@
     "build": "nest build",
     "dev": "nest start --watch",
     "start": "node dist/main.js",
+    "gtfs:import": "node dist/modules/gtfs/presentation/import-gtfs.command.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --passWithNoTests"

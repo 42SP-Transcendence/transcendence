@@ -190,7 +190,7 @@ async function main(): Promise<void> {
         await tx.gtfsFeed.upsert({
           where: { contentHash: feed.contentHash },
           create: feed,
-          update: {},
+          update: { importedAt: new Date() },
         });
         for (const line of lines) {
           const variant = {
