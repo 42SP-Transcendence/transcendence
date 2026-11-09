@@ -79,12 +79,12 @@ To be completed: task distribution, meetings, tools and communication channels.
 
 ## Database Schema
 
-PostgreSQL 17, managed with Prisma. The source of truth is [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma) and the migrations next to it. The 20 tables fall into six groups:
+PostgreSQL 17, managed with Prisma. The source of truth is [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma) and the migrations next to it. The 21 tables fall into six groups:
 
 | Group         | Tables                                                                                                | Filled by                         |
 | ------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------- |
 | Accounts      | `users`, `line_follows`                                                                               | Sign-up and line follows          |
-| GTFS schedule | `routes`, `calendars`, `trips`, `stops`, `stop_times`, `frequencies`                                  | GTFS import                       |
+| GTFS schedule | `gtfs_feeds`, `routes`, `calendars`, `trips`, `stops`, `stop_times`, `frequencies`                    | GTFS import                       |
 | Collection    | `line_variants`, `monitoring_requests`, `collection_jobs`, `collection_attempts`, `vehicle_positions` | Collector, from the Olho Vivo API |
 | Assessment    | `band_assessments`                                                                                    | Comparison with the schedule      |
 | Reports       | `wait_reports`, `dossiers`, `complaint_protocols`                                                     | Passengers                        |
@@ -114,6 +114,8 @@ erDiagram
     collection_jobs ||--o{ dossiers : evidence
     wait_reports ||--o| dossiers : becomes
     dossiers ||--o{ complaint_protocols : filed
+    gtfs_feeds ||--o{ band_assessments : schedules
+    gtfs_feeds ||--o{ dossiers : schedules
 
     users {
         uuid id PK
@@ -131,6 +133,13 @@ erDiagram
         uuid user_id PK, FK
         text route_id PK
         timestamptz created_at
+    }
+    gtfs_feeds {
+        smallint id PK
+        text content_hash UK
+        date valid_from
+        date valid_to
+        timestamptz imported_at
     }
     routes {
         text route_id PK
@@ -212,6 +221,7 @@ erDiagram
         smallint http_status
         int latency_ms
         int vehicle_count
+        jsonb raw_response
     }
     vehicle_positions {
         bigint id PK
@@ -235,6 +245,7 @@ erDiagram
         decimal coverage_ratio
         verdict verdict
         text method_version
+        smallint gtfs_feed_id FK
     }
     wait_reports {
         uuid id PK
@@ -251,6 +262,7 @@ erDiagram
         uuid wait_report_id FK, UK
         uuid collection_job_id FK
         text method_version
+        smallint gtfs_feed_id FK
         jsonb evidence_snapshot
         timestamptz created_at
     }
