@@ -1,7 +1,7 @@
 import { Global, Inject, Module, type OnApplicationShutdown } from '@nestjs/common';
 import { createPrismaClient, type PrismaClient } from '@transcendence/database';
 
-const PRISMA = Symbol('PRISMA');
+export const PRISMA = Symbol('PRISMA');
 
 /**
  * Builds the shared Prisma client from DATABASE_URL, failing at startup when it is missing.
