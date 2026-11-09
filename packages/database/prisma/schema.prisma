@@ -85,6 +85,7 @@ model User {
   role               Role                @default(user)
   locale             Locale              @default(pt_BR)
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  suspendedAt        DateTime?           @map("suspended_at") @db.Timestamptz
   deletedAt          DateTime?           @map("deleted_at") @db.Timestamptz
   lineFollows        LineFollow[]
   monitoringRequests MonitoringRequest[]
@@ -273,6 +274,8 @@ model BandAssessment {
   bandEndSecs          Int           @map("band_end_secs")
   scheduledHeadwaySecs Int?          @map("scheduled_headway_secs")
   maxObservedGapSecs   Int?          @map("max_observed_gap_secs")
+  observedCount        Int?          @map("observed_count")
+  expectedCount        Int?          @map("expected_count")
   coverageRatio        Decimal       @map("coverage_ratio") @db.Decimal(4, 3)
   verdict              Verdict
   methodVersion        String        @map("method_version")
