@@ -1,17 +1,15 @@
 import { Global, Inject, Module, type OnApplicationShutdown } from '@nestjs/common';
 import { createPrismaClient, type PrismaClient } from '@transcendence/database';
 
+import { loadDatabaseEnv } from '../config/env';
+
 export const PRISMA = Symbol('PRISMA');
 
 /**
- * Builds the shared Prisma client from DATABASE_URL, failing at startup when it is missing.
+ * Builds the shared Prisma client from the validated DATABASE_URL.
  */
 function prismaFactory(): PrismaClient {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error('DATABASE_URL is not set');
-  }
-  return createPrismaClient(url);
+  return createPrismaClient(loadDatabaseEnv().DATABASE_URL);
 }
 
 @Global()
