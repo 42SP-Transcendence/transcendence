@@ -4,6 +4,9 @@
     "apps/collector": {
       "entry": ["src/main.ts", "src/modules/gtfs/presentation/import-gtfs.command.ts"]
     },
+    "packages/config": {
+      "ignoreDependencies": ["eslint-import-resolver-typescript"]
+    },
     "packages/database": {
       "ignoreDependencies": ["@prisma/client"]
     }
