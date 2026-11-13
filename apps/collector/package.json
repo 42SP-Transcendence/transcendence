@@ -16,6 +16,7 @@
     "@nestjs/core": "^12.3.2",
     "@transcendence/core": "workspace:*",
     "@transcendence/database": "workspace:*",
+    "@transcendence/schemas": "workspace:*",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },

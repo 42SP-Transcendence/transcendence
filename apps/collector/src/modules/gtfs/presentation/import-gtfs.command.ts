@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
+import { loadDatabaseEnv, orExit } from '../../../config/env';
 import { DatabaseModule } from '../../../database/database.module';
 import { ImportGtfs } from '../application/import-gtfs.use-case';
 import { GtfsModule } from '../gtfs.module';
@@ -24,6 +25,7 @@ async function main(): Promise<void> {
     process.exitCode = 2;
     return;
   }
+  orExit(() => loadDatabaseEnv());
   const app = await NestFactory.createApplicationContext(ImportGtfsCommandModule, {
     logger: ['error', 'warn'],
   });
