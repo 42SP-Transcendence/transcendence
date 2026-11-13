@@ -81,6 +81,7 @@ O hook de pre-commit roda o Prettier nos arquivos alterados. Não use `--no-veri
 - **Quem revisa confere:** se o PR resolve a issue, se o código respeita as camadas da arquitetura (`domain` não importa Nest nem Prisma), se há testes para o que mudou e se nenhum segredo entrou no código.
 - **Comentários:** quem revisa pede mudanças com comentários; quem abriu responde e marca a conversa como resolvida.
 - **Mudanças de arquitetura** (camadas, banco, dependências novas) passam também pelo Tech Lead.
+- **Exceção:** a Tech Lead (`GyAlves`) pode fazer merge dos próprios PRs sem aprovação, para a base que trava o resto do time não ficar parada esperando revisão. O CI verde continua obrigatório, e os PRs dela seguem abertos para comentários depois do merge.
 
 ## Segredos
 
