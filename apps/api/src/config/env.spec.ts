@@ -24,8 +24,38 @@ function failure(source: NodeJS.ProcessEnv): EnvValidationError {
 
 describe('loadApiEnv', () => {
   it('parses a valid environment and defaults the port', () => {
-    expect(loadApiEnv({ DATABASE_URL })).toEqual({ DATABASE_URL, API_PORT: 3001 });
+    expect(loadApiEnv({ DATABASE_URL })).toEqual({
+      DATABASE_URL,
+      API_PORT: 3001,
+      SMTP_HOST: 'localhost',
+      SMTP_PORT: 1025,
+      SMTP_USER: undefined,
+      SMTP_PASSWORD: undefined,
+      SMTP_FROM: 'Observatório dos Ônibus <nao-responda@observatorio.local>',
+    });
     expect(loadApiEnv({ DATABASE_URL, API_PORT: '8080' }).API_PORT).toBe(8080);
+  });
+
+  it('reads the SMTP settings and treats empty credentials as absent', () => {
+    const env = loadApiEnv({
+      DATABASE_URL,
+      SMTP_HOST: 'smtp.example.com',
+      SMTP_PORT: '587',
+      SMTP_USER: '',
+      SMTP_PASSWORD: '',
+      SMTP_FROM: 'Equipe <equipe@example.com>',
+    });
+
+    expect(env).toMatchObject({
+      SMTP_HOST: 'smtp.example.com',
+      SMTP_PORT: 587,
+      SMTP_USER: undefined,
+      SMTP_PASSWORD: undefined,
+      SMTP_FROM: 'Equipe <equipe@example.com>',
+    });
+    expect(failure({ DATABASE_URL, SMTP_PORT: '0' }).problems).toEqual([
+      'SMTP_PORT: must be a port between 1 and 65535',
+    ]);
   });
 
   it('explains a missing DATABASE_URL', () => {
