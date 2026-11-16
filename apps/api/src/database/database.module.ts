@@ -3,7 +3,7 @@ import { createPrismaClient, type PrismaClient } from '@transcendence/database';
 
 import { loadApiEnv } from '../config/env';
 
-const PRISMA = Symbol('PRISMA');
+export const PRISMA = Symbol('PRISMA');
 
 /**
  * Builds the shared Prisma client from the validated DATABASE_URL.
