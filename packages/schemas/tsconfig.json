@@ -2,7 +2,8 @@
   "extends": "@transcendence/config/tsconfig/library.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "types": ["jest"]
   },
   "include": ["src"]
 }
