@@ -97,11 +97,11 @@ To be completed: task distribution, meetings, tools and communication channels.
 
 ## Database Schema
 
-PostgreSQL 17, managed with Prisma. The source of truth is [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma) and the migrations next to it. The 21 tables fall into six groups:
+PostgreSQL 17, managed with Prisma. The source of truth is [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma) and the migrations next to it. The 22 tables fall into six groups:
 
 | Group         | Tables                                                                                                | Filled by                         |
 | ------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------- |
-| Accounts      | `users`, `line_follows`                                                                               | Sign-up and line follows          |
+| Accounts      | `users`, `sessions`, `line_follows`                                                                   | Sign-up, login and line follows   |
 | GTFS schedule | `gtfs_feeds`, `routes`, `calendars`, `trips`, `stops`, `stop_times`, `frequencies`                    | GTFS import                       |
 | Collection    | `line_variants`, `monitoring_requests`, `collection_jobs`, `collection_attempts`, `vehicle_positions` | Collector, from the Olho Vivo API |
 | Assessment    | `band_assessments`                                                                                    | Comparison with the schedule      |
@@ -110,6 +110,7 @@ PostgreSQL 17, managed with Prisma. The source of truth is [`packages/database/p
 
 ```mermaid
 erDiagram
+    users ||--o{ sessions : logs_in
     users ||--o{ line_follows : follows
     users ||--o{ monitoring_requests : asks
     users ||--o{ wait_reports : reports
@@ -146,6 +147,13 @@ erDiagram
         timestamptz created_at
         timestamptz suspended_at
         timestamptz deleted_at
+    }
+    sessions {
+        uuid id PK
+        uuid user_id FK
+        text token_hash UK
+        timestamptz created_at
+        timestamptz expires_at
     }
     line_follows {
         uuid user_id PK, FK
