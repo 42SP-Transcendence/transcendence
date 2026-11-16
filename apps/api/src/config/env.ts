@@ -1,13 +1,33 @@
 import { databaseUrl, EnvValidationError, parseEnv, z } from '@transcendence/schemas';
 
-export const apiEnvSchema = z.object({
-  DATABASE_URL: databaseUrl,
-  API_PORT: z.coerce
+/**
+ * Builds a port variable that falls back to the given default when absent.
+ */
+function port(fallback: number) {
+  return z.coerce
     .number({ error: 'must be a port number' })
     .int('must be a port number')
     .min(1, 'must be a port between 1 and 65535')
     .max(65_535, 'must be a port between 1 and 65535')
-    .default(3001),
+    .default(fallback);
+}
+
+const optionalText = z
+  .string()
+  .optional()
+  .transform((value) => value || undefined);
+
+export const apiEnvSchema = z.object({
+  DATABASE_URL: databaseUrl,
+  API_PORT: port(3001),
+  SMTP_HOST: z.string().min(1, 'is required').default('localhost'),
+  SMTP_PORT: port(1025),
+  SMTP_USER: optionalText,
+  SMTP_PASSWORD: optionalText,
+  SMTP_FROM: z
+    .string()
+    .min(1, 'is required')
+    .default('Observatório dos Ônibus <nao-responda@observatorio.local>'),
 });
 
 export type ApiEnv = z.output<typeof apiEnvSchema>;

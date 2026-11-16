@@ -16,6 +16,7 @@
     "@nestjs/platform-express": "^12.3.2",
     "@transcendence/database": "workspace:*",
     "@transcendence/schemas": "workspace:*",
+    "nodemailer": "^10.6.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
@@ -25,6 +26,7 @@
     "@transcendence/config": "workspace:*",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.19.0",
+    "@types/nodemailer": "^8.0.2",
     "eslint": "^9.39.5",
     "jest": "^30.5.2",
     "ts-jest": "^29.4.15",
