@@ -1,4 +1,11 @@
-import type { NewUser, PasswordHasher, StoredUser, UserRepository } from '../application/ports';
+import type {
+  NewSession,
+  NewUser,
+  PasswordHasher,
+  SessionRepository,
+  StoredUser,
+  UserRepository,
+} from '../application/ports';
 import { EmailTakenError } from '../domain/auth-errors';
 
 export class FakeUserRepository implements UserRepository {
@@ -49,6 +56,65 @@ export class FakePasswordHasher implements PasswordHasher {
    */
   async hash(password: string): Promise<string> {
     this.calls += 1;
-    return `hashed:${password.length}`;
+    return `hashed:${[...password].reverse().join('')}`;
+  }
+
+  /**
+   * Tells whether the marker was made from that password.
+   */
+  async verify(passwordHash: string, password: string): Promise<boolean> {
+    return passwordHash === `hashed:${[...password].reverse().join('')}`;
+  }
+}
+
+export class FakeSessionRepository implements SessionRepository {
+  readonly sessions: NewSession[] = [];
+
+  /**
+   * Receives the user repository that owns the users the sessions point to.
+   */
+  constructor(private readonly users: FakeUserRepository) {}
+
+  /**
+   * Stores the session.
+   */
+  async create(session: NewSession): Promise<void> {
+    this.sessions.push(session);
+  }
+
+  /**
+   * Returns the owner of an unexpired session with that token hash, or null.
+   */
+  async findUserByTokenHash(tokenHash: string, now: Date): Promise<StoredUser | null> {
+    const session = this.sessions.find(
+      (stored) => stored.tokenHash === tokenHash && stored.expiresAt > now,
+    );
+    return this.users.users.find((user) => user.id === session?.userId) ?? null;
+  }
+
+  /**
+   * Removes the session with that token hash.
+   */
+  async deleteByTokenHash(tokenHash: string): Promise<void> {
+    const index = this.sessions.findIndex((stored) => stored.tokenHash === tokenHash);
+    if (index !== -1) {
+      this.sessions.splice(index, 1);
+    }
+  }
+}
+
+export class FakeClock {
+  now = new Date('2026-11-16T12:00:00Z');
+
+  /**
+   * Returns the clock as a function, the shape the use cases expect.
+   */
+  readonly read = (): Date => this.now;
+
+  /**
+   * Moves the clock forward by the given number of milliseconds.
+   */
+  advance(ms: number): void {
+    this.now = new Date(this.now.getTime() + ms);
   }
 }
