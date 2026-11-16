@@ -3,7 +3,7 @@ import type { PrismaClient } from '@transcendence/database';
 import type { NewUser, StoredUser, UserRepository } from '../application/ports';
 import { EmailTakenError } from '../domain/auth-errors';
 
-const STORED_USER_FIELDS = {
+export const STORED_USER_FIELDS = {
   id: true,
   email: true,
   displayName: true,

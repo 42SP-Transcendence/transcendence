@@ -26,7 +26,7 @@ describe('SignUpUser', () => {
     await new SignUpUser(users, new FakePasswordHasher()).execute(input);
 
     expect(users.created).toEqual([
-      { email: 'ana@exemplo.com', displayName: 'Ana', passwordHash: 'hashed:15' },
+      { email: 'ana@exemplo.com', displayName: 'Ana', passwordHash: 'hashed:agnol-meb-ahnes' },
     ]);
     expect(JSON.stringify(users.users)).not.toContain(input.password);
   });
