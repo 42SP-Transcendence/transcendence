@@ -78,3 +78,34 @@ export function signUp(input: SignUp): Promise<AuthUser> {
 export function signIn(input: SignIn): Promise<AuthUser> {
   return postAuth('/api/auth/login', input);
 }
+
+/**
+ * Returns the signed-in user from GET /api/auth/me, or null when there is no valid session or the API cannot be reached.
+ */
+export async function getCurrentUser(): Promise<AuthUser | null> {
+  try {
+    const response = await fetch('/api/auth/me', { credentials: 'include' });
+    if (!response.ok) {
+      return null;
+    }
+    const user = authUserSchema.safeParse(await response.json());
+    return user.success ? user.data : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Ends the session through POST /api/auth/logout, or throws an AuthRequestError when the API refuses or cannot be reached.
+ */
+export async function signOut(): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+  } catch {
+    throw new AuthRequestError(0, 'network_error');
+  }
+  if (!response.ok) {
+    throw new AuthRequestError(response.status, 'unexpected_error');
+  }
+}
