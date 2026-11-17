@@ -22,7 +22,7 @@ export function AuthCard({
   children,
 }: AuthCardProps) {
   return (
-    <main className="px-gutter flex min-h-dvh items-center justify-center py-12">
+    <div className="px-gutter flex flex-1 items-center justify-center py-12">
       <div className="bg-surface flex w-full max-w-md flex-col gap-6 rounded-lg p-6 sm:p-8">
         <header className="flex flex-col gap-2">
           <h1 className="font-display text-3xl font-extrabold">{title}</h1>
@@ -39,6 +39,6 @@ export function AuthCard({
           </Link>
         </p>
       </div>
-    </main>
+    </div>
   );
 }
