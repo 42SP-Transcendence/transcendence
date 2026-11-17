@@ -12,3 +12,5 @@ next-env.d.ts
 infra/nginx/certs/
 .DS_Store
 *.log
+test-results/
+playwright-report/
