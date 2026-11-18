@@ -28,7 +28,21 @@ describe('collector environment', () => {
     expect(loadCollectorEnv({ DATABASE_URL, SPTRANS_API_TOKEN })).toEqual({
       DATABASE_URL,
       SPTRANS_API_TOKEN,
+      POSITIONS_RETENTION_DAYS: 30,
     });
+  });
+
+  it('reads the position retention in days and rejects values that are not whole positive days', () => {
+    expect(
+      loadCollectorEnv({ DATABASE_URL, SPTRANS_API_TOKEN, POSITIONS_RETENTION_DAYS: '45' })
+        .POSITIONS_RETENTION_DAYS,
+    ).toBe(45);
+    expect(problems({ DATABASE_URL, SPTRANS_API_TOKEN, POSITIONS_RETENTION_DAYS: '0' })).toEqual([
+      'POSITIONS_RETENTION_DAYS: must keep at least 1 day',
+    ]);
+    expect(problems({ DATABASE_URL, SPTRANS_API_TOKEN, POSITIONS_RETENTION_DAYS: '1.5' })).toEqual([
+      'POSITIONS_RETENTION_DAYS: must be a whole number of days',
+    ]);
   });
 
   it('requires the token, as left empty in .env.example', () => {

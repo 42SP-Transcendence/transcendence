@@ -7,6 +7,11 @@ export const collectorEnvSchema = databaseEnvSchema.extend({
     /^[0-9a-f]{64}$/i,
     'must be the 64-character hexadecimal token from the SPTrans developer portal',
   ),
+  POSITIONS_RETENTION_DAYS: z.coerce
+    .number({ error: 'must be a whole number of days' })
+    .int('must be a whole number of days')
+    .min(1, 'must keep at least 1 day')
+    .default(30),
 });
 
 export type CollectorEnv = z.output<typeof collectorEnvSchema>;
