@@ -42,6 +42,18 @@ services:
       retries: 5
     restart: unless-stopped
 
+  collector:
+    build:
+      context: .
+      target: collector
+      args:
+        APP: collector
+    env_file: .env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
   web:
     build:
       context: .

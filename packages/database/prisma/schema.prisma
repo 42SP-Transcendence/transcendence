@@ -247,6 +247,7 @@ model CollectionJob {
   intervalSecs       Int                 @map("interval_secs")
   startedAt          DateTime?           @map("started_at") @db.Timestamptz
   finishedAt         DateTime?           @map("finished_at") @db.Timestamptz
+  nextPollAt         DateTime            @default(now()) @map("next_poll_at") @db.Timestamptz
   lineVariant        LineVariant         @relation(fields: [lineVariantId], references: [id])
   monitoringRequests MonitoringRequest[]
   attempts           CollectionAttempt[]
@@ -255,7 +256,7 @@ model CollectionJob {
   dossiers           Dossier[]
 
   @@unique([lineVariantId, operatingDay])
-  @@index([status])
+  @@index([status, nextPollAt])
   @@map("collection_jobs")
 }
 

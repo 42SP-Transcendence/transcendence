@@ -27,6 +27,14 @@ USER node
 EXPOSE 3001
 CMD ["node", "dist/main.js"]
 
+FROM node:22-alpine AS collector
+ENV NODE_ENV=production
+WORKDIR /repo
+COPY --from=builder /repo .
+WORKDIR /repo/apps/collector
+USER node
+CMD ["node", "dist/main.js"]
+
 FROM node:22-alpine AS web
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
