@@ -277,7 +277,7 @@ model CollectionAttempt {
 }
 
 model VehiclePosition {
-  id            BigInt            @id @default(autoincrement())
+  id            BigInt            @default(autoincrement())
   jobId         String            @map("job_id") @db.Uuid
   attemptId     BigInt            @map("attempt_id")
   vehiclePrefix String            @map("vehicle_prefix")
@@ -288,6 +288,7 @@ model VehiclePosition {
   job           CollectionJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
   attempt       CollectionAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
+  @@id([id, observedAt])
   @@unique([jobId, vehiclePrefix, observedAt])
   @@index([attemptId])
   @@map("vehicle_positions")
