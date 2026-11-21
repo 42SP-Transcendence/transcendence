@@ -1,11 +1,17 @@
-import { databaseUrl, EnvValidationError, parseEnv, requiredText, z } from '@transcendence/schemas';
+import { databaseUrl, EnvValidationError, parseEnv, z } from '@transcendence/schemas';
 
 export const databaseEnvSchema = z.object({ DATABASE_URL: databaseUrl });
 
 export const collectorEnvSchema = databaseEnvSchema.extend({
-  SPTRANS_API_TOKEN: requiredText().regex(
-    /^[0-9a-f]{64}$/i,
-    'must be the 64-character hexadecimal token from the SPTrans developer portal',
+  SPTRANS_API_TOKEN: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z
+      .string()
+      .regex(
+        /^[0-9a-f]{64}$/i,
+        'must be the 64-character hexadecimal token from the SPTrans developer portal',
+      )
+      .optional(),
   ),
   POSITIONS_RETENTION_DAYS: z.coerce
     .number({ error: 'must be a whole number of days' })

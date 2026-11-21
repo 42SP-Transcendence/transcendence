@@ -10,7 +10,7 @@ import { TRANSIT_DATA_SOURCE, type TransitDataSource } from './application/trans
 import { OlhoVivoAdapter } from './infrastructure/olho-vivo/olho-vivo.adapter';
 import { OlhoVivoHttpClient } from './infrastructure/olho-vivo/olho-vivo-http.client';
 import { PrismaCollectionJobs } from './infrastructure/prisma-collection-jobs';
-import { CollectionScheduler } from './presentation/collection.scheduler';
+import { COLLECTION_ENABLED, CollectionScheduler } from './presentation/collection.scheduler';
 
 @Module({
   providers: [
@@ -38,6 +38,10 @@ import { CollectionScheduler } from './presentation/collection.scheduler';
       useFactory: (jobs: CollectionJobs, source: TransitDataSource) =>
         new RunDueCollections(jobs, source),
       inject: [COLLECTION_JOBS, TRANSIT_DATA_SOURCE],
+    },
+    {
+      provide: COLLECTION_ENABLED,
+      useFactory: () => loadCollectorEnv().SPTRANS_API_TOKEN !== undefined,
     },
     CollectionScheduler,
   ],
