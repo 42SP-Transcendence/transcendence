@@ -45,10 +45,11 @@ describe('collector environment', () => {
     ]);
   });
 
-  it('requires the token, as left empty in .env.example', () => {
-    expect(problems({ DATABASE_URL, SPTRANS_API_TOKEN: '' })).toEqual([
-      'SPTRANS_API_TOKEN: is required',
-    ]);
+  it('treats a missing or empty token, as left in .env.example, as no token', () => {
+    expect(loadCollectorEnv({ DATABASE_URL, SPTRANS_API_TOKEN: '' }).SPTRANS_API_TOKEN).toBe(
+      undefined,
+    );
+    expect(loadCollectorEnv({ DATABASE_URL }).SPTRANS_API_TOKEN).toBe(undefined);
   });
 
   it('rejects a malformed token without echoing it', () => {
@@ -68,7 +69,7 @@ describe('collector environment', () => {
 
   it('lets the GTFS import run with the database alone', () => {
     expect(loadDatabaseEnv({ DATABASE_URL })).toEqual({ DATABASE_URL });
-    expect(problems({})).toEqual(['DATABASE_URL: is required', 'SPTRANS_API_TOKEN: is required']);
+    expect(problems({})).toEqual(['DATABASE_URL: is required']);
   });
 
   it('declares every variable in .env.example', () => {

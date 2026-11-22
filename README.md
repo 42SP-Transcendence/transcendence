@@ -24,6 +24,8 @@ docker compose up --build
 
 Open https://localhost:8443. The certificate is self-signed and generated on first start, so the browser asks you to accept it once.
 
+The whole stack starts without an Olho Vivo token, but the collector only polls the API once `SPTRANS_API_TOKEN` is set in `.env`. Without it, the collector logs that collection is off and keeps maintaining the `vehicle_positions` partitions. To get a token, create an account in the [SPTrans developer area](https://www.sptrans.com.br/desenvolvedores/) and register an application; approval takes one to two days.
+
 ### Local development
 
 ```bash
