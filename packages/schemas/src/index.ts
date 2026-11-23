@@ -16,4 +16,13 @@ export {
   signUpSchema,
 } from './auth.js';
 export { databaseUrl, EnvValidationError, parseEnv, requiredText } from './env.js';
+export {
+  WAIT_OUTCOMES,
+  WAIT_REPORT_CLOCK_SKEW_SECONDS,
+  WAIT_REPORT_MAX_MINUTES,
+  type WaitOutcome,
+  type WaitReport,
+  type WaitReportInput,
+  waitReportSchema,
+} from './wait-report.js';
 export { z } from 'zod';
