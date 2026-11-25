@@ -1,2 +1,4 @@
 @import 'tailwindcss';
 @import '@transcendence/ui/tokens.css';
+
+@source '../../../packages/ui/src';

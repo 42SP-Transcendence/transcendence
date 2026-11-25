@@ -21,14 +21,29 @@
     "src/tokens.css"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "node --test test/contrast.test.js"
+    "test": "node --test test/contrast.test.js && vitest run"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1"
+  },
+  "peerDependencies": {
+    "react": "^19.3.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@transcendence/config": "workspace:*",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
     "eslint": "^9.39.5",
-    "typescript": "~6.0.3"
+    "jsdom": "^31.0.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.0"
   }
 }
