@@ -83,6 +83,17 @@ O hook de pre-commit roda o Prettier nos arquivos alterados. Não use `--no-veri
 - **Mudanças de arquitetura** (camadas, banco, dependências novas) passam também pelo Tech Lead.
 - **Exceção:** a Tech Lead (`GyAlves`) pode fazer merge dos próprios PRs sem aprovação, para a base que trava o resto do time não ficar parada esperando revisão. O CI verde continua obrigatório, e os PRs dela seguem abertos para comentários depois do merge.
 
+## Componentes do design system
+
+Os componentes React compartilhados ficam em `packages/ui/src`. Use o `LineCode` (`line-code.tsx`) como modelo:
+
+1. Crie `nome-do-componente.tsx` com as classes do Tailwind e os tokens de `tokens.css`. As variantes ficam num `cva` (`class-variance-authority`), e o componente aceita `className` para ajustes de quem usa.
+2. Crie `nome-do-componente.test.tsx` ao lado, com Vitest e Testing Library. Teste pelo que a pessoa vê e ouve (texto, papel, rótulo), não pela estrutura do HTML.
+3. Exporte o componente e o tipo das props em `src/index.ts`.
+4. Use em `apps/web` importando de `@transcendence/ui`. O Tailwind do `apps/web` já lê as classes de `packages/ui/src`.
+
+Rode `pnpm --filter @transcendence/ui test` durante o desenvolvimento e confira o componente no tema claro e no escuro.
+
 ## Segredos
 
 - **Tokens e senhas** ficam só no `.env`, que está no `.gitignore`. Nunca em código, fixture, log, issue ou PR.
