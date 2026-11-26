@@ -16,6 +16,7 @@ export type ImportReport = {
   status: 'imported' | 'rejected';
   feedId?: number;
   version?: FeedVersion;
+  routeDistricts?: { districts: number; rows: number };
   files: Record<GtfsFile, FileReport>;
   issues: GtfsIssue[];
 };
@@ -59,7 +60,14 @@ export class ImportGtfs {
       return { status: 'rejected', files: report, issues };
     }
     const version = { contentHash: feedContentHash(files as GtfsFiles), ...validity };
-    const feedId = await this.schedules.replace(schedule, version);
-    return { status: 'imported', feedId, version, files: report, issues };
+    const stored = await this.schedules.replace(schedule, version);
+    return {
+      status: 'imported',
+      feedId: stored.feedId,
+      version,
+      routeDistricts: { districts: stored.districts, rows: stored.routeDistricts },
+      files: report,
+      issues,
+    };
   }
 }

@@ -1,7 +1,7 @@
 import type { GtfsFile, GtfsFiles, Schedule } from '../domain/schedule';
 import { smallFeed } from '../test/feed';
 import { ImportGtfs } from './import-gtfs.use-case';
-import type { FeedVersion, GtfsSource, ScheduleRepository } from './ports';
+import type { FeedVersion, GtfsSource, ScheduleRepository, StoredSchedule } from './ports';
 
 class FakeSource implements GtfsSource {
   /**
@@ -21,11 +21,11 @@ class FakeScheduleRepository implements ScheduleRepository {
   readonly replaced: { schedule: Schedule; version: FeedVersion }[] = [];
 
   /**
-   * Records the call and returns a fixed feed id.
+   * Records the call and returns a fixed feed id and route_districts count.
    */
-  async replace(schedule: Schedule, version: FeedVersion): Promise<number> {
+  async replace(schedule: Schedule, version: FeedVersion): Promise<StoredSchedule> {
     this.replaced.push({ schedule, version });
-    return 7;
+    return { feedId: 7, districts: 96, routeDistricts: 3 };
   }
 }
 
@@ -43,6 +43,7 @@ describe('ImportGtfs', () => {
         validFrom: new Date('2023-10-01T00:00:00Z'),
         validTo: new Date('2027-06-01T00:00:00Z'),
       },
+      routeDistricts: { districts: 96, rows: 3 },
       files: { stop_times: { rows: 2, imported: 2 }, routes: { rows: 1, imported: 1 } },
       issues: [],
     });

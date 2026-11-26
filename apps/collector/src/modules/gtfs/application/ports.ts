@@ -6,8 +6,10 @@ export interface GtfsSource {
   read(file: GtfsFile): Promise<string | undefined>;
 }
 
+export type StoredSchedule = { feedId: number; districts: number; routeDistricts: number };
+
 export interface ScheduleRepository {
-  replace(schedule: Schedule, version: FeedVersion): Promise<number>;
+  replace(schedule: Schedule, version: FeedVersion): Promise<StoredSchedule>;
 }
 
 export const SCHEDULE_REPOSITORY = Symbol('SCHEDULE_REPOSITORY');
