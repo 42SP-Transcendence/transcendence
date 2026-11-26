@@ -53,4 +53,16 @@ describe('formatImportReport', () => {
     expect(text).not.toContain('line 53');
     expect(text).toContain('...and 2 more');
   });
+
+  it('shows how many route_districts rows were recalculated', () => {
+    const text = formatImportReport(report({ routeDistricts: { districts: 96, rows: 4210 } }));
+
+    expect(text).toContain('route_districts: 4210 row(s) recalculated from 96 district outline(s)');
+  });
+
+  it('says when route_districts was not recalculated for lack of district outlines', () => {
+    const text = formatImportReport(report({ routeDistricts: { districts: 0, rows: 0 } }));
+
+    expect(text).toContain('route_districts: not recalculated, no district outlines yet');
+  });
 });

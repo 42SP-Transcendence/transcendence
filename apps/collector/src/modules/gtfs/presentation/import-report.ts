@@ -27,6 +27,15 @@ export function formatImportReport(report: ImportReport): string {
       `${`${file}.txt`.padEnd(16)}${String(rows).padStart(10)}${String(imported).padStart(10)}`,
     );
   }
+  if (report.routeDistricts) {
+    const { rows, districts } = report.routeDistricts;
+    lines.push(
+      '',
+      districts === 0
+        ? 'route_districts: not recalculated, no district outlines yet'
+        : `route_districts: ${rows} row(s) recalculated from ${districts} district outline(s)`,
+    );
+  }
   lines.push('', `${report.issues.length} issue(s)`);
   for (const issue of report.issues.slice(0, LISTED_ISSUES)) {
     lines.push(`  ${issue.file}.txt line ${issue.line}: ${issue.message}`);

@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@transcendence/database';
 
-import type { FeedVersion, ScheduleRepository } from '../application/ports';
+import type { FeedVersion, ScheduleRepository, StoredSchedule } from '../application/ports';
+import { routeDistricts } from '../domain/route-districts';
 import type { Schedule } from '../domain/schedule';
 
 const CHUNK_SIZE = 5_000;
@@ -23,9 +24,9 @@ export class PrismaScheduleRepository implements ScheduleRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   /**
-   * Replaces the whole schedule and records the feed version in one transaction, so readers never see half a feed.
+   * Replaces the whole schedule, recalculates route_districts from the new stops and records the feed version in one transaction, so readers never see half a feed.
    */
-  async replace(schedule: Schedule, version: FeedVersion): Promise<number> {
+  async replace(schedule: Schedule, version: FeedVersion): Promise<StoredSchedule> {
     return this.prisma.$transaction(
       async (tx) => {
         await tx.route.deleteMany();
@@ -49,12 +50,18 @@ export class PrismaScheduleRepository implements ScheduleRepository {
         for (const data of chunks(schedule.frequencies)) {
           await tx.frequency.createMany({ data });
         }
+        const districts = await tx.district.findMany({ select: { id: true, geometry: true } });
+        const links = routeDistricts(schedule, districts);
+        for (const data of chunks(links)) {
+          await tx.routeDistrict.createMany({ data });
+        }
         const feed = await tx.gtfsFeed.upsert({
           where: { contentHash: version.contentHash },
           create: version,
           update: { importedAt: new Date() },
         });
-        return feed.id;
+        const outlined = districts.filter((district) => district.geometry !== null).length;
+        return { feedId: feed.id, districts: outlined, routeDistricts: links.length };
       },
       { maxWait: 15_000, timeout: 600_000 },
     );
