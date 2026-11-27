@@ -12,16 +12,27 @@ import { OlhoVivoMappingError, toLineVariants, toPositions } from './olho-vivo.m
 import type { OlhoVivoHttpClient, OlhoVivoResponse } from './olho-vivo-http.client';
 
 /**
- * Turns client and mapping errors into the typed error of the port, keeping other errors as they are.
+ * Tells whether a failed request is the SPTrans side being down or slow: 5xx, 429, timeout, network error, or a body that is not JSON.
+ */
+function sourceUnavailable(error: OlhoVivoRequestError): boolean {
+  return error.retryable || error.failure === 'invalid_response';
+}
+
+/**
+ * Turns client and mapping errors into the typed error of the port, telling the SPTrans side apart from our own failures and keeping other errors as they are.
  */
 function translate(error: unknown): unknown {
   if (error instanceof OlhoVivoAuthError) {
     return new TransitDataSourceError('auth_failed', error.message);
   }
   if (error instanceof OlhoVivoRequestError) {
-    return new TransitDataSourceError('collector_failed', error.message, error.status);
+    const outcome = sourceUnavailable(error) ? 'source_unavailable' : 'collector_failed';
+    return new TransitDataSourceError(outcome, error.message, error.status);
   }
-  if (error instanceof CircuitOpenError || error instanceof OlhoVivoMappingError) {
+  if (error instanceof CircuitOpenError) {
+    return new TransitDataSourceError('source_unavailable', error.message);
+  }
+  if (error instanceof OlhoVivoMappingError) {
     return new TransitDataSourceError('collector_failed', error.message);
   }
   return error;
