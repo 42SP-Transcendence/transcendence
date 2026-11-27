@@ -3,6 +3,7 @@ export const COLLECTION_OUTCOMES = [
   'stale',
   'empty',
   'auth_failed',
+  'source_unavailable',
   'collector_failed',
 ] as const;
 
