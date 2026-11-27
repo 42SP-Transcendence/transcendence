@@ -329,6 +329,21 @@ erDiagram
 
 `line_follows.route_id`, `line_variants.route_id` and `wait_reports.stop_id` hold GTFS identifiers without a foreign key.
 
+### Collection outcomes
+
+Each poll of the Olho Vivo API is stored in `collection_attempts` with one outcome. The dossier uses it to say whose gap a missing stretch is.
+
+| Outcome              | Meaning                                                                                                         | Whose gap                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `ok`                 | Valid answer with buses, the newest position at most 3 minutes old                                              | —                                   |
+| `stale`              | Valid answer, but the newest position is more than 3 minutes old                                                | SPTrans                             |
+| `empty`              | Valid answer with no buses on the line                                                                          | — (it is an observation, not a gap) |
+| `auth_failed`        | The token or the session was refused                                                                            | Ours (configuration)                |
+| `source_unavailable` | SPTrans down or slow: HTTP 5xx or 429, timeout, network error, open circuit breaker, or a body that is not JSON | SPTrans                             |
+| `collector_failed`   | Our side failed: an unexpected 4xx, an answer we cannot map, or an error in our code                            | Ours                                |
+
+`http_status` is kept whenever there was an HTTP answer.
+
 ## Features List
 
 To be completed as features are implemented.

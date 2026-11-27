@@ -78,11 +78,19 @@ describe('OlhoVivoAdapter', () => {
     );
   });
 
-  it('reports HTTP failures, an open circuit and a broken body as collector_failed', async () => {
+  it('reports 5xx, 429, timeout, network error, an open circuit and a body that is not JSON as source_unavailable', async () => {
     const failures = [
       new OlhoVivoRequestError('http', 'GET /Posicao/Linha returned 503', true, 503),
-      new OlhoVivoRequestError('timeout', 'GET /Posicao/Linha timed out', true),
+      new OlhoVivoRequestError('http', 'GET /Posicao/Linha returned 429', true, 429),
+      new OlhoVivoRequestError('timeout', 'GET /Posicao/Linha timed out after 10000 ms', true),
+      new OlhoVivoRequestError('network', 'GET /Posicao/Linha could not reach the API', true),
       new CircuitOpenError(30_000),
+      new OlhoVivoRequestError(
+        'invalid_response',
+        'GET /Posicao/Linha returned a body that is not JSON',
+        false,
+        200,
+      ),
     ];
     for (const failure of failures) {
       const { instance } = adapter(async () => {
@@ -90,10 +98,20 @@ describe('OlhoVivoAdapter', () => {
       });
 
       await expect(instance.positions(2506)).rejects.toMatchObject({
-        outcome: 'collector_failed',
+        outcome: 'source_unavailable',
         message: failure.message,
       });
     }
+  });
+
+  it('reports an unexpected 4xx and an answer we cannot map as collector_failed', async () => {
+    const refused = adapter(async () => {
+      throw new OlhoVivoRequestError('http', 'GET /Posicao/Linha returned 404', false, 404);
+    });
+    await expect(refused.instance.positions(2506)).rejects.toMatchObject({
+      outcome: 'collector_failed',
+      httpStatus: 404,
+    });
 
     const broken = adapter(async () => ({
       status: 200,
@@ -112,7 +130,10 @@ describe('OlhoVivoAdapter', () => {
       throw new OlhoVivoRequestError('http', 'GET /Posicao/Linha returned 503', true, 503);
     });
 
-    await expect(instance.positions(2506)).rejects.toMatchObject({ httpStatus: 503 });
+    await expect(instance.positions(2506)).rejects.toMatchObject({
+      outcome: 'source_unavailable',
+      httpStatus: 503,
+    });
   });
 
   it('lets unexpected errors through untouched', async () => {

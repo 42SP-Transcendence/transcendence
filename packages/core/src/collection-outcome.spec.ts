@@ -7,6 +7,7 @@ describe('CollectionOutcome', () => {
       'stale',
       'empty',
       'auth_failed',
+      'source_unavailable',
       'collector_failed',
     ]);
   });

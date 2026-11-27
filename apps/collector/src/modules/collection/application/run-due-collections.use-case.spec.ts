@@ -94,11 +94,15 @@ describe('RunDueCollections', () => {
       { jobId: 'job-1', sourceId: 1 },
       { jobId: 'job-2', sourceId: 2 },
       { jobId: 'job-3', sourceId: 3 },
+      { jobId: 'job-4', sourceId: 4 },
+      { jobId: 'job-5', sourceId: 5 },
     ];
     const errors: Record<number, Error> = {
       1: new TransitDataSourceError('auth_failed', 'token refused'),
-      2: new TransitDataSourceError('collector_failed', 'HTTP 503', 503),
-      3: new Error('unexpected'),
+      2: new TransitDataSourceError('source_unavailable', 'HTTP 503', 503),
+      3: new TransitDataSourceError('source_unavailable', 'timed out'),
+      4: new TransitDataSourceError('collector_failed', 'HTTP 404', 404),
+      5: new Error('unexpected'),
     };
 
     await new RunDueCollections(
@@ -115,7 +119,9 @@ describe('RunDueCollections', () => {
       })),
     ).toEqual([
       { outcome: 'auth_failed', httpStatus: undefined, positions: [] },
-      { outcome: 'collector_failed', httpStatus: 503, positions: [] },
+      { outcome: 'source_unavailable', httpStatus: 503, positions: [] },
+      { outcome: 'source_unavailable', httpStatus: undefined, positions: [] },
+      { outcome: 'collector_failed', httpStatus: 404, positions: [] },
       { outcome: 'collector_failed', httpStatus: undefined, positions: [] },
     ]);
   });

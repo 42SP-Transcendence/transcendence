@@ -24,7 +24,7 @@ export type LineVariant = {
   terminalSecondary: string;
 };
 
-export type TransitFailure = 'auth_failed' | 'collector_failed';
+export type TransitFailure = 'auth_failed' | 'source_unavailable' | 'collector_failed';
 
 export class TransitDataSourceError extends Error {
   /**
